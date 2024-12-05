@@ -1,0 +1,229 @@
+swagger: "2.0"
+info:
+  title: Movie API
+  description: A web service to manage movies, showcasing features and technologies used in real-world production-grade applications.
+  version: "0.8"
+  contact:
+    name: Yanto
+    email: yanto
+  license:
+    name: MIT License
+tags:
+  - name: MoviesWriterService
+  - name: MoviesReaderService
+schemes:
+  - https
+consumes:
+  - application/json
+produces:
+  - application/json
+paths:
+  /v1/movies:
+    get:
+      summary: ListMovies returns a list of Movies.
+      operationId: MoviesReaderService_ListMovies
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1ListMoviesResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: pageSize
+          in: query
+          required: false
+          type: integer
+          format: int32
+        - name: pageToken
+          in: query
+          required: false
+          type: string
+      tags:
+        - MoviesReaderService
+    post:
+      summary: CreateMovie creates a Movie.
+      operationId: MoviesWriterService_CreateMovie
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1Movie'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: movie
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1Movie'
+            required:
+              - movie
+      tags:
+        - MoviesWriterService
+  /v1/movies/{id}:
+    get:
+      summary: GetMovie returns a Movie.
+      operationId: MoviesReaderService_GetMovie
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1Movie'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+          format: int64
+      tags:
+        - MoviesReaderService
+    delete:
+      operationId: MoviesWriterService_DeleteMovie
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1Movie'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+          format: int64
+      tags:
+        - MoviesWriterService
+  /v1/movies/{movie.id}:
+    patch:
+      operationId: MoviesWriterService_UpdateMovie
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1Movie'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: movie.id
+          in: path
+          required: true
+          type: string
+          format: int64
+        - name: movie
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              title:
+                type: string
+              genre:
+                type: string
+              description:
+                type: string
+              releaseDate:
+                type: string
+                format: date-time
+              createTime:
+                type: string
+                format: date-time
+              updateTime:
+                type: string
+                format: date-time
+      tags:
+        - MoviesWriterService
+  /v1/movies:undelete:
+    post:
+      operationId: MoviesWriterService_UndeleteMovie
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1Movie'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1UndeleteMovieRequest'
+      tags:
+        - MoviesWriterService
+definitions:
+  protobufAny:
+    type: object
+    properties:
+      '@type':
+        type: string
+    additionalProperties: {}
+  rpcStatus:
+    type: object
+    properties:
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
+      details:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/protobufAny'
+  v1ListMoviesResponse:
+    type: object
+    properties:
+      movies:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1Movie'
+      nextPageToken:
+        type: string
+  v1Movie:
+    type: object
+    properties:
+      id:
+        type: string
+        format: int64
+      title:
+        type: string
+      genre:
+        type: string
+      description:
+        type: string
+      releaseDate:
+        type: string
+        format: date-time
+      createTime:
+        type: string
+        format: date-time
+      updateTime:
+        type: string
+        format: date-time
+  v1UndeleteMovieRequest:
+    type: object
+    properties:
+      id:
+        type: string
+        format: int64
+    required:
+      - id
+externalDocs:
+  description: README

@@ -1,0 +1,154 @@
+syntax = "proto3";
+
+package api.movies.v1;
+
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/api/client.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/field_mask.proto";
+import "buf/validate/validate.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+    info: {
+      title: "Movie API";
+      version: "0.8";
+      description: "A web service to manage movies, showcasing features and technologies used in real-world production-grade applications.";
+      contact: {
+        name: "Yanto";
+        email: "yanto";
+      };
+      license: {
+        name: "MIT License";
+      };
+    };
+    external_docs: {
+      description: "README";
+    };
+    schemes: HTTPS;
+    consumes: "application/json";
+    produces: "application/json";
+  };
+  
+
+
+
+message Movie {
+  option (google.api.resource) = {
+    type: "yanto.ar/Movie"
+    pattern: "movies/{movie}"
+    singular: "movie"
+    plural: "movies"
+  };
+
+  int64 id = 1;
+  string title = 2 [(buf.validate.field).string.min_len = 1];
+  string genre = 3;
+  string description = 4;
+  google.protobuf.Timestamp release_date = 5;
+  google.protobuf.Timestamp create_time = 1000;
+  google.protobuf.Timestamp update_time = 1001;
+}
+
+message CreateMovieRequest {
+  Movie movie = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message DeleteMovieRequest {
+  int64 id = 1 [
+    (buf.validate.field).int64.gt = 0,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {
+      type: "yanto.ar/Movie"
+    }];
+}
+
+message UndeleteMovieRequest {
+  int64 id = 1 [
+    (buf.validate.field).int64.gt = 0,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {
+      type: "yanto.ar/Movie"
+    }];
+}
+
+message UpdateMovieRequest {
+  Movie movie = 1 [(google.api.field_behavior) = REQUIRED, (buf.validate.field).skipped = true];
+
+  google.protobuf.FieldMask update_mask = 2;
+}
+
+// MoviesWriterService holds the methods to persist, modify and remove Movies.
+service MoviesWriterService {
+  // CreateMovie creates a Movie.
+  rpc CreateMovie(CreateMovieRequest) returns (Movie) {
+    option (google.api.http) = {
+      post: "/v1/movies";
+      body: "movie";
+    };
+    option (google.api.method_signature) = "movie";
+  };
+  rpc DeleteMovie(DeleteMovieRequest) returns (Movie) {
+    option (google.api.http) = {
+      delete: "/v1/movies/{id}";
+    };
+    option (google.api.method_signature) = "id";
+  };
+  rpc UndeleteMovie(UndeleteMovieRequest) returns (Movie) {
+    option (google.api.http) = {
+      post: "/v1/movies:undelete";
+      body: "*";
+    };
+    option (google.api.method_signature) = "id";
+  };
+  rpc UpdateMovie(UpdateMovieRequest) returns (Movie) {
+    option (google.api.http) = {
+      patch: "/v1/movies/{movie.id}";
+      body: "movie";
+    };
+    option (google.api.method_signature) = "id,update_mask";
+  };
+}
+
+message GetMovieRequest {
+  int64 id = 1 [
+    (buf.validate.field).int64.gt = 0,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {
+      type: "yanto.ar/Movie"
+    }];
+}
+
+message ListMoviesRequest {
+  int32 page_size = 2 [
+    (google.api.field_behavior) = OPTIONAL
+  ];
+  string page_token = 3 [
+    (google.api.field_behavior) = OPTIONAL
+  ];
+}
+
+message ListMoviesResponse {
+  repeated Movie movies = 1;
+  string next_page_token = 2;
+}
+
+// MoviesReaderService holds the methods to obtain Movies.
+service MoviesReaderService {
+  // GetMovie returns a Movie.
+  rpc GetMovie(GetMovieRequest) returns (Movie) {
+    option (google.api.http) = {
+      get: "/v1/movies/{id}";
+    };
+    option (google.api.method_signature) = "movie";
+  };
+
+  // ListMovies returns a list of Movies.
+  rpc ListMovies(ListMoviesRequest) returns (ListMoviesResponse) {
+    option (google.api.http) = {
+      get: "/v1/movies";
+    };
+  };
+}

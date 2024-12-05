@@ -1,0 +1,63 @@
+version: "3.9"
+services:
+  app:
+    build:
+      context: ../..
+      dockerfile: build/app.Dockerfile
+    container_name: app
+    ports:
+      - "3030:3030"
+      - "3031:3031"
+    restart: unless-stopped
+    env_file:
+      - .env.ci
+    networks:
+      - transport
+      - persistence
+    depends_on:
+      - db
+    environment:
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+      - DATABASE_USER=movieuser
+      - DATABASE_PASSWORD=moviepassword
+      - DATABASE_NAME=movie
+
+  gateway:
+    build:
+      context: ../..
+      dockerfile: build/gateway.Dockerfile
+    container_name: gateway
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    env_file:
+      - .env.ci
+    environment:
+      - APPLICATION_PORT=8080
+    networks:
+      - transport
+    depends_on:
+      - app
+
+  db:
+    image: postgres:17.0-alpine3.19
+    container_name: db
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=movieuser
+      - POSTGRES_PASSWORD=moviepassword
+      - POSTGRES_DB=movie
+    networks:
+      - persistence
+
+networks:
+  transport:
+    name: "transport"
+  persistence:
+    name: "persistence"
+
+volumes:
+  db_data:
